@@ -12,41 +12,50 @@ class RecordController extends Module {
 		val toDownRecord = Output()
 		val toRightRecord = Output()
 	})
-	// ==================================================
-	// Modules
+	// Modules =========================================================
 	// record setting
-	val downRecord =
-		Vec(Seq.fill(m){ Module(new Record()).io })
 	val rightRecord =
-		Vec(Seq.fill(n){ Module(new Record()).io })
+		Vec(Seq.fill(m){ Module(new Record(m)).io })
+	val downRecord =
+		Vec(Seq.fill(n){ Module(new Record(n)).io })
 	// Element setting
 	val Elements = Vec(Seq.fill(m * n){ Module(new Element()).io })
 	// Storage setting
 	val TheStorage = Module(new Storage())
-	// Wires
+	// Wires ===========================================================
 	// Elements - Storages
 	for(i <- 0 until m * n) {
 		TheStorage.io.frombuffers(i) := Elements(i).io.toBuffer
 	}
-	// Between Records and Record - Controller
-	for(i <- 0 until m-1) {
-		downRecord(i+1).io.get := downRecord(i).io.toNext
+	// Record - Contorller?
+
+	// Element - Element
+	// > Left - Right
+	for(j <- 0 until m) {
+		for(i <- 0 until n-1) {
+			Elements(i+1+(j*n)).io.fromLeft := Elements(i+(j*n)).io.toRight
+		}
 	}
-	downRecord(0).io.get := io.toDownRecord
-	for(i <- 0 until n-1) {
-		rightRecord(i+1).io.get := rightRecord(i).io.toNext
+	// > Top - Down
+	for(j <- 0 until m-1) {
+		for(i <- 0 until n) {
+			Elements(i+n).io.fromTop := Elements(i).io.toDown
+		}
 	}
-	rightRecord(0).io.get := io.toRightRecord
-	// ==================================================
+	// Record - Element?
+	for(j <- 0 until m) {
+		for(i <- 0 until n) {
+		}
+	}
+	// =================================================================
 	// command processing
 }
 
 /* Temp Record to insert input */
-class Record extends Module {
+class Record(n: Int) extends Module {
 	val io = IO(new Bundle {
 		val get = Input(UInt(8.W))
 		val toCell = Output(UInt(8.W))
-		val toNext = Output(UInt(8.W))
 	})
 	// Initialize
 	when(reset.toBool) {
@@ -57,6 +66,5 @@ class Record extends Module {
 	val r0 = RegNext(io.get)
 	val r1 = RegNext(r0)
 	// Output
-	io.toCell := r0
 	io.toNext := r1
 }
