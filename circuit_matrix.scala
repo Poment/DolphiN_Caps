@@ -32,7 +32,7 @@ class Element extends Module {
 }
 
 /* Result storage */
-class storage extends Module {
+class Storage extends Module {
 	val io = IO(new Bundle {
 		// m * n storages
 		val fromBuffers = Vec(Seq.fill( m * n ){ Input(UInt(16.W)) })

@@ -12,16 +12,33 @@ class RecordController extends Module {
 		val toDownRecord = Output()
 		val toRightRecord = Output()
 	})
+	// ==================================================
+	// Modules
 	// record setting
 	val downRecord =
-		Vec(Seq.fill(m){ Module(new RECORD()).io })
+		Vec(Seq.fill(m){ Module(new Record()).io })
 	val rightRecord =
-		Vec(Seq.fill(n){ Module(new RECORD()).io })
-	// command processing
-	when(?) {
-		when(?) {
-		} .elsewhen(?)
+		Vec(Seq.fill(n){ Module(new Record()).io })
+	// Element setting
+	val Elements = Vec(Seq.fill(m * n){ Module(new Element()).io })
+	// Storage setting
+	val TheStorage = Module(new Storage())
+	// Wires
+	// Elements - Storages
+	for(i <- 0 until m * n) {
+		TheStorage.io.frombuffers(i) := Elements(i).io.toBuffer
 	}
+	// Between Records and Record - Controller
+	for(i <- 0 until m-1) {
+		downRecord(i+1).io.get := downRecord(i).io.toNext
+	}
+	downRecord(0).io.get := io.toDownRecord
+	for(i <- 0 until n-1) {
+		rightRecord(i+1).io.get := rightRecord(i).io.toNext
+	}
+	rightRecord(0).io.get := io.toRightRecord
+	// ==================================================
+	// command processing
 }
 
 /* Temp Record to insert input */
