@@ -3,6 +3,7 @@ package circuit.manager
 import chisel3._
 import circuit.matrix._
 
+/* CORE CIRCUIT */
 class RecordController extends Module {
 	val io = IO(new Bundle {
 		val command = Input()
@@ -11,18 +12,19 @@ class RecordController extends Module {
 		val toDownRecord = Output()
 		val toRightRecord = Output()
 	})
-	// m * n Matrix? Records
+	// record setting
 	val downRecord =
 		Vec(Seq.fill(m){ Module(new RECORD()).io })
 	val rightRecord =
 		Vec(Seq.fill(n){ Module(new RECORD()).io })
-	// receive command
+	// command processing
 	when(?) {
 		when(?) {
 		} .elsewhen(?)
 	}
 }
 
+/* Temp Record to insert input */
 class Record extends Module {
 	val io = IO(new Bundle {
 		val get = Input(UInt(8.W))

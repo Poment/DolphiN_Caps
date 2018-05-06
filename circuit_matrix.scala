@@ -3,6 +3,7 @@ package circuit.matrix
 import chisel3._
 import chisel3.util._
 
+/* Matrix mul result Element */
 class Element extends Module {
 	val io = IO(new Bundle {
 		val fromLeft = Input(UInt(8.W))
@@ -11,6 +12,7 @@ class Element extends Module {
 		val toDown = Output(UInt(8.W))
 		val toBuffer = Output(UInt(16.W))
 	})
+	// from top / left to down / right
 	val r0 = RegNext(io.fromLeft)
 	val r1 = RegNext(r0)
 	val r2 = RegNext(io.fromTop)
@@ -29,17 +31,19 @@ class Element extends Module {
 	io.toDown := r3
 }
 
+/* Result storage */
 class storage extends Module {
 	val io = IO(new Bundle {
 		// m * n storages
 		val fromBuffers = Vec(Seq.fill( m * n ){ Input(UInt(16.W)) })
-		val jobEnd = Input(Bool())
+		val jobEnd = Input(Bool()) // if job is ended, send result
 		val toInterface = Output(UInt(( 16 * m * n ).W)
 		val catEnd = Output(bool())
 	})
 	// Receive and Concat
 	val blocks = Reg(Vec(Seq.fill(m * n){ UInt(16.W) }))
 
+	// match element and storage
 	for(i <- 0 until m * n) {
 		blocks(i) := io.fromBuffers(i)
 	}
