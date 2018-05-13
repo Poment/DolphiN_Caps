@@ -16,8 +16,8 @@ rd:
 
 customX rd, rs1, rs2, 2
 - Set Special Parameters
-rs1: XO1/YO1(16-bit each)
-rs2: XO2/YO2(16-bit each)
+rs1: XO1/YO1/XO2/YO2(8-bit each)
+rs2: 
 rd:
 (1 clk op)
 (X0#: row offset number of partial matrix(input matrix #))
