@@ -7,7 +7,7 @@ rd: 0x00(success) or 0x01(failed)
 
 customX rd, rs1, rs2, 1
 - Set Parameters
-rs1: ?/A/B/K(8-bit each)
+rs1: A/B/K(8-bit each)
 rs2: (Input Mutex Address)
 rd:
 (1 clk op / input mutex has to be acquired in advance)
@@ -36,7 +36,7 @@ customX rd, rs1, rs2, 4
 - Report Specification
 rs1:
 rs2:
-rd: 0/ISA_VER/M/N(8-bit each)
+rd: ISA_VER/M/N(8-bit each)
 (1 clk op)
 
 customX rd, rs1, rs2, 5
