@@ -1,0 +1,48 @@
+customX rd, rs1, rs2, 0000001(2)
+- Reserve
+rs1: Output Address
+rs2: (Output Mutex Address)
+rd: 0x00(success) or 0x01(failed)
+(1 clk op / output mutex has to be acquired in advance)
+
+customX rd, rs1, rs2, 0000010(2)
+- Set Parameters
+rs1: ?/A/B/K(8-bit each)
+rs2: (Input Mutex Address)
+rd:
+(1 clk op / input mutex has to be acquired in advance)
+(Input Matrix #1: A*K, Input Matrix #2: K*B)
+(A<=M, B<=N, K<=M, K<=N where systolic array size is M*N)
+
+customX rd, rs1, rs2, 0000100(2)
+- Set Special Parameters
+rs1: XO1/YO1(16-bit each)
+rs2: XO2/YO2(16-bit each)
+rd:
+(1 clk op)
+(X0#: row offset number of partial matrix(input matrix #))
+(Y0#: column offset number of partial matrix(input matrix #))
+
+customX rd, rs1, rs2, 0001000(2)
+- Start
+rs1: Input Address 1
+rs2: Input Address 2
+rd:
+(? clk op(release CPU immediately))
+(if input loaded, interrupt to release input mutex, then start)
+(if finished, interrupt to release output mutex, then release the reservation)
+
+customX rd, rs1, rs2, 0010000(2)
+- Report Specification
+rs1:
+rs2:
+rd: 0/0/M/N(8-bit each)
+(1 clk op)
+
+customX rd, rs1, rs2, 0100000(2)
+- Reset Coprocessor
+rs1:
+rs2:
+rd:
+(1~ clk op, full stall?)
+(it should not be required)

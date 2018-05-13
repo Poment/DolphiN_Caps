@@ -113,7 +113,7 @@ class Storage(m: Int, n: Int) extends Module {
 	for(i <- 0 until m * n) {
 		blocks(i) := io.fromBuffers(i)
 	}
-	
+
 	val concat = UInit(0.U)
 	when(io.jobEnd) {
 		for(i <- 0 until (m * n)) {
