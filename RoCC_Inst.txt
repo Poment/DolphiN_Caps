@@ -1,25 +1,20 @@
 customX rd, rs1, rs2, 0
 - Reserve
 rs1: Output Address
-rs2: (Output Mutex Address)
+rs2: (Mutex Address)
 rd: 0x00(success) or 0x01(failed)
 (1 clk op / output mutex has to be acquired in advance)
+(reset all resources and make a reservation)
+(if rs2 == 0, full stall)
 
 customX rd, rs1, rs2, 1
 - Set Parameters
 rs1: A/B/K(8-bit each)
-rs2: (Input Mutex Address)
+rs2: XO1/YO1/XO2/YO2(8-bit each)
 rd:
 (1 clk op / input mutex has to be acquired in advance)
 (Input Matrix #1: A*K, Input Matrix #2: K*B)
 (A<=M, B<=N, K<=M, K<=N where systolic array size is M*N)
-
-customX rd, rs1, rs2, 2
-- Set Special Parameters
-rs1: XO1/YO1/XO2/YO2(8-bit each)
-rs2: 
-rd:
-(1 clk op)
 (X0#: row offset number of partial matrix(input matrix #))
 (Y0#: column offset number of partial matrix(input matrix #))
 
@@ -38,11 +33,3 @@ rs1:
 rs2:
 rd: ISA_VER/M/N(8-bit each)
 (1 clk op)
-
-customX rd, rs1, rs2, 5
-- Reset Coprocessor
-rs1:
-rs2:
-rd:
-(1~ clk op, full stall?)
-(it should not be required)
