@@ -18,7 +18,7 @@ rd:
 (X0#: row offset number of partial matrix(input matrix #))
 (Y0#: column offset number of partial matrix(input matrix #))
 
-customX rd, rs1, rs2, 3
+customX rd, rs1, rs2, 2
 - Start
 rs1: Input Address 1
 rs2: Input Address 2
@@ -27,7 +27,7 @@ rd:
 (if input loaded, interrupt to release input mutex, then start)
 (if finished, interrupt to release output mutex, then release the reservation)
 
-customX rd, rs1, rs2, 4
+customX rd, rs1, rs2, 3
 - Report Specification
 rs1:
 rs2:
