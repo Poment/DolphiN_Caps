@@ -3,7 +3,7 @@ customX rd, rs1, rs2, 0
 rs1: Output Address
 rs2: (Mutex Address)
 rd: 0x00(success) or 0x01(failed)
-(1 clk op / output mutex has to be acquired in advance)
+(1 clk op / mutex has to be acquired in advance)
 (reset all resources and make a reservation)
 (if rs2 == 0, full stall)
 
@@ -12,7 +12,7 @@ customX rd, rs1, rs2, 1
 rs1: A/B/K(8-bit each)
 rs2: XO1/YO1/XO2/YO2(8-bit each)
 rd:
-(1 clk op / input mutex has to be acquired in advance)
+(1 clk op)
 (Input Matrix #1: A*K, Input Matrix #2: K*B)
 (A<=M, B<=N, K<=M, K<=N where systolic array size is M*N)
 (X0#: row offset number of partial matrix(input matrix #))
@@ -24,12 +24,11 @@ rs1: Input Address 1
 rs2: Input Address 2
 rd:
 (? clk op(release CPU immediately))
-(if input loaded, interrupt to release input mutex, then start)
-(if finished, interrupt to release output mutex, then release the reservation)
+(if finished, interrupt to release mutex and the reservation)
 
 customX rd, rs1, rs2, 3
 - Report Specification
 rs1:
 rs2:
-rd: ISA_VER/M/N(8-bit each)
+rd: M/N(8-bit each)
 (1 clk op)
