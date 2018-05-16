@@ -1,4 +1,11 @@
 customX rd, rs1, rs2, 0
+- Report Specification
+rs1:
+rs2:
+rd: M/N(8-bit each)
+(1 clk op)
+
+customX rd, rs1, rs2, 1
 - Reserve
 rs1: Output Address
 rs2: (Mutex Address)
@@ -7,7 +14,7 @@ rd: 0x00(success) or 0x01(failed)
 (reset all resources and make a reservation)
 (if rs2 == 0, full stall)
 
-customX rd, rs1, rs2, 1
+customX rd, rs1, rs2, 2
 - Set Parameters
 rs1: A/B/K(8-bit each)
 rs2: XO1/YO1/XO2/YO2(8-bit each)
@@ -18,17 +25,10 @@ rd:
 (X0#: row offset number of partial matrix(input matrix #))
 (Y0#: column offset number of partial matrix(input matrix #))
 
-customX rd, rs1, rs2, 2
+customX rd, rs1, rs2, 3
 - Start
 rs1: Input Address 1
 rs2: Input Address 2
 rd:
 (? clk op(release CPU immediately))
 (if finished, interrupt to release mutex and the reservation)
-
-customX rd, rs1, rs2, 3
-- Report Specification
-rs1:
-rs2:
-rd: M/N(8-bit each)
-(1 clk op)
