@@ -12,7 +12,7 @@ rs2: (Mutex Address)
 rd: 0x00(success) or 0x01(failed)
 (1 clk op / mutex has to be acquired in advance)
 (reset all resources and make a reservation)
-(if mutex address == 0, full stall)
+(if mutex address == 0, full stall during 'Start' operation)
 
 customX rd, rs1, rs2, 2
 - Set Parameters
