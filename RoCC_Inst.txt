@@ -17,7 +17,7 @@ rd: 0x00(success) or 0x01(failed)
 customX rd, rs1, rs2, 2
 - Set Parameters
 rs1: A/B/K(8-bit each)
-rs2: XO1/YO1/XO2/YO2(8-bit each)
+rs2: XO0/YO0/XO1/YO1(8-bit each)
 rd:
 (1 clk op)
 (Input Matrix #1: A*K, Input Matrix #2: K*B)
