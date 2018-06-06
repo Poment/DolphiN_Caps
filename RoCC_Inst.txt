@@ -14,7 +14,7 @@ rd: 0x00(success) or 0x01(failed)
 (reset all resources and make a reservation)
 (if mutex address == 0, full stall during 'Start' operation)
 (if already reserved, return 0x01)
-(if not reserved, all below instructions will be ignored)
+(if not reserved, all instructions except 'Report' or 'Release' will be ignored)
 
 customX rd, rs1, rs2, 0x04
 - Set Parameters
@@ -41,3 +41,11 @@ rs2: Input Address 2
 rd:
 (? clk op(release CPU immediately))
 (if finished, interrupt to release mutex and the reservation)
+
+customX rd, rs1, rs2, 0x20
+- Release
+rs1:
+rs2:
+rd:
+(1 clk op)
+(this should not be used in most of common situation)
