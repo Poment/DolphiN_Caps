@@ -6,67 +6,78 @@ import chisel3.util._
 /* CORE CIRCUIT */
 class RecordController(m: Int, n: Int) extends Module {
 	val io = IO(new Bundle {
-		val command = Input()
-		val jobEnd = Input(Bool())
-		val go = Output(Bool())
-		val toDownRecord = Output()
-		val toRightRecord = Output()
+		val begin = Input(Bool())
 	})
 	// Modules =========================================================
-	// record setting
-	val rightRecord =
-		Vec(Seq.fill(m){ Module(new Record(m)).io })
-	val downRecord =
-		Vec(Seq.fill(n){ Module(new Record(n)).io })
-	// Element setting
+	// >>>> Queue setting
+	val Mrecords =
+		Vec(Seq.fill(m){ Module(new Record(m+n)).io })
+	val Nrecords =
+		Vec(Seq.fill(n){ Module(new Record(n+m)).io })
+	val counter = RegInit(0.U(8.W))
+	// >>>> Element setting
 	val Elements = Vec(Seq.fill(m * n){ Module(new Element()).io })
-	// Storage setting
+	// >>>> Accumulator setting
 	val TheStorage = Module(new Storage(m, n))
 	// Wires ===========================================================
-	// Elements - Storages
+	// >>>> Elements - Storages
 	for(i <- 0 until m * n) {
-		TheStorage.io.frombuffers(i) := Elements(i).io.toBuffer
+		TheStorage.io.fromElements(i) := Elements(i).toAccumulator
 	}
-	// Record - Contorller?
 
-	// Element - Element
-	// > Left - Right
+	// >>>> Element - Element
+	// >> Left - Right
 	for(j <- 0 until m) {
 		for(i <- 0 until n-1) {
-			Elements(i+1+(j*n)).io.fromLeft := Elements(i+(j*n)).io.toRight
+			Elements(i+1+(j*n)).fromLeft := Elements(i+(j*n)).toRight
 		}
 	}
-	// > Top - Down
+	// >> Top - Down
 	for(j <- 0 until m-1) {
 		for(i <- 0 until n) {
-			Elements(i+n).io.fromTop := Elements(i).io.toDown
+			Elements(i+n).fromTop := Elements(i).toDown
 		}
 	}
-	// Record - Element?
-	for(j <- 0 until m) {
-		for(i <- 0 until n) {
-		}
+	// >>>> Queue - Element
+	for(i <- 0 until m) {
+		Mrecords(i).toElement := Elements(i*n).fromLeft
 	}
-	// =================================================================
-	// command processing
+	for(i <- 0 until n) {
+		Nrecords(i).toElement := Elements(i).fromTop
+	}
+	// Begin Queue
+	when( io.begin ) {
+		Mrecords(counter).begin := true
+		Nrecords(counter).begin := true
+		counter := counter + 1
+	}
 }
 
 /* Temp Record to insert input */
 class Record(x: Int) extends Module {
 	val io = IO(new Bundle {
-		val get = Input(UInt(8.W))
-		val toCell = Output(UInt(8.W))
+		val fromController = Input(UInt(8.W))
+		val get = Input(Bool())
+		val begin = Input(Bool())
+		val toElement = Output(UInt(8.W))
 	})
 	// Initialize
-	when(reset.toBool) {
-		r0 := 0.U
-		r1 := 0.U
+	val buffers =  Reg(init = Vec(Seq.fill( x )( 0.U(8.W) )))
+	// Get input
+	when( io.get ) {
+		for (i <- x-1 to 1 by -1) {
+    			buffers(i) := buffers(i - 1)
+  		}
+  		buffers(0) := io.fromController
+  		
 	}
-	// Keep Value
-	val r0 = RegNext(io.get)
-	val r1 = RegNext(r0)
-	// Output
-	io.toNext := r1
+	// Give input
+	when( io.begin ) {
+		for (i <- x-1 to 1 by -1) {
+    			buffers(i) := buffers(i - 1)
+  		}
+		io.toElement := buffers(x-1)
+	}
 }
 
 /* Matrix mul result Element */
@@ -76,53 +87,35 @@ class Element extends Module {
 		val fromTop = Input(UInt(8.W))
 		val toRight = Output(UInt(8.W))
 		val toDown = Output(UInt(8.W))
-		val toBuffer = Output(UInt(16.W))
+		val toAccumulator = Output(UInt(32.W))
 	})
 	// from top / left to down / right
-	val r0 = RegNext(io.fromLeft)
-	val r1 = RegNext(r0)
-	val r2 = RegNext(io.fromTop)
-	val r3 = RegNext(r2)
-	when(reset.toBool) {
-		r0 := 0.U
-		r1 := 0.U
-		r2 := 0.U
-		r3 := 0.U
-	}
+	val r0 = RegInit(0.U(8.W))
+	val r1 = RegInit(0.U(8.W))
 	// Multiply and send to Buffer
-	val mul = r0 * r2
-	io.toBuffer := mul
+	val mul = r0 * r1
+	io.toAccumulator := mul
 	// Systolic Array
-	io.toRight := r1
-	io.toDown := r3
+	r0 := io.fromLeft
+	r1 := io.fromTop
+	io.toAccumulator := mul
+	io.toRight := r0
+	io.toDown := r1
 }
 
 /* Result storage */
 class Storage(m: Int, n: Int) extends Module {
 	val io = IO(new Bundle {
 		// x storages
-		val fromBuffers = Vec(Seq.fill( m * n ){ Input(UInt(16.W)) })
-		val jobEnd = Input(Bool()) // if job is ended, send result
-		val toInterface = Output(UInt(( 16 * m * n ).W)
-		val catEnd = Output(bool())
+		val fromElements = Input(Vec( m * n, UInt(8.W) ))
+		val finish = Input(Bool()) // if job is ended, send result
+		val toController = Output(UInt(( 32 * m * n ).W))
 	})
-	// Receive and Concat
-	val blocks = Reg(Vec(Seq.fill(m * n){ UInt(16.W) }))
+	// accumulator
+	val accumulator = Reg(init = Vec(Seq.fill( m * n )( 0.U(32.W) )))
 
 	// match element and storage
 	for(i <- 0 until m * n) {
-		blocks(i) := io.fromBuffers(i)
-	}
-
-	val concat = UInit(0.U)
-	when(io.jobEnd) {
-		for(i <- 0 until (m * n)) {
-			concat := Cat(concat, blocks(i)
-		}
-		io.toInterface := concat
-		io.catEnd := TRUE
-	}
-	when(io.catEnd === TRUE) {
-		io.catEnd := FALSE
+		accumulator(i) := io.fromElements(i)
 	}
 }
