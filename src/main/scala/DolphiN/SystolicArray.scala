@@ -7,7 +7,12 @@ import chisel3.util._
 class RecordController(m: Int, n: Int) extends Module {
 	val io = IO(new Bundle {
 		val begin = Input(Bool())
+		val a = Input(UInt(8.W))
+		val b = Input(UInt(8.W))
+		val k = Input(UInt(8.W))
 	})
+	// Timer Setting ===================================================
+	val timer = Reginit(0.U(16.W))
 	// Modules =========================================================
 	// >>>> Queue setting
 	val Mrecords =
@@ -19,7 +24,7 @@ class RecordController(m: Int, n: Int) extends Module {
 	val Elements = Vec(Seq.fill(m * n){ Module(new Element()).io })
 	// >>>> Accumulator setting
 	val TheStorage = Module(new Storage(m, n))
-	// Wires ===========================================================
+	// IO ==============================================================
 	// >>>> Elements - Storages
 	for(i <- 0 until m * n) {
 		TheStorage.io.fromElements(i) := Elements(i).toAccumulator
@@ -35,17 +40,17 @@ class RecordController(m: Int, n: Int) extends Module {
 	// >> Top - Down
 	for(j <- 0 until m-1) {
 		for(i <- 0 until n) {
-			Elements(i+n).fromTop := Elements(i).toDown
+			Elements(((j+1)*n)+i).fromTop := Elements((j*n)+i).toDown
 		}
 	}
 	// >>>> Queue - Element
 	for(i <- 0 until m) {
-		Mrecords(i).toElement := Elements(i*n).fromLeft
+		Elements(i*n).fromLeft := Mrecords(i).toElement
 	}
 	for(i <- 0 until n) {
-		Nrecords(i).toElement := Elements(i).fromTop
+		 Elements(i).fromTop := Nrecords(i).toElement
 	}
-	// Begin Queue
+	// Queue Control ===================================================
 	when( io.begin ) {
 		Mrecords(counter).begin := true
 		Nrecords(counter).begin := true
@@ -115,7 +120,7 @@ class Storage(m: Int, n: Int) extends Module {
 	val accumulator = Reg(init = Vec(Seq.fill( m * n )( 0.U(32.W) )))
 
 	// match element and storage
-	for(i <- 0 until m * n) {
-		accumulator(i) := io.fromElements(i)
+	for(i <- 0 until (m * n)) {
+		accumulator(i) := accumulator(i) + io.fromElements(i)
 	}
 }
