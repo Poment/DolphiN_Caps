@@ -114,6 +114,7 @@ class Record(x: Int) extends Module {
 	.otherwise {
 		for (i <- 0 until x) {
     			buffers(i) := buffers(i)
+			io.toElement := 0.U
   		}
 	}
 }
