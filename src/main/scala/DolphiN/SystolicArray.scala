@@ -51,19 +51,23 @@ class RecordController(m: Int, n: Int) extends Module {
 	for(i <- 0 until n) {
 		 Elements(i).fromTop := Nrecords(i).toElement
 	}
-	// Queue Control ===================================================
-	when( io.begin ) {
-		Mrecords(counter).begin := true
-		Nrecords(counter).begin := true
-		counter := counter + 1
-	}
 	// Controlling
-	// >>>> timer control
+	// >>>> timer control & Queue control
 	when(io.begin) {
 		timer := timer - 1.U
+		Mrecords(counter).begin := true.B
+		Nrecords(counter).begin := true.B
+		counter := counter + 1.U
 	}
 	.otherwise {
 		timer := io.a + io.k + io.b - 1.U
+		for(i <- 0 until m) {
+			Mrecords(i).begin := false.B
+		}
+		for(i <- 0 until n) {
+			Nrecords(i).begin := false.B
+		}
+		counter := 0.U
 	}
 	// >>>> reset control
 	TheStorage.io.reset := true.B
