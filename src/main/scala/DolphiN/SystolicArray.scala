@@ -10,8 +10,9 @@ class RecordController(m: Int, n: Int) extends Module {
 		val a = Input(UInt(8.W))
 		val b = Input(UInt(8.W))
 		val k = Input(UInt(8.W))
+		val finish = Output(Bool())
 	})
-	// Timer Setting ===================================================
+	// Register Setting ===================================================
 	val timer = Reginit(0.U(16.W))
 	// Modules =========================================================
 	// >>>> Queue setting
@@ -56,6 +57,24 @@ class RecordController(m: Int, n: Int) extends Module {
 		Nrecords(counter).begin := true
 		counter := counter + 1
 	}
+	// Controlling
+	// >>>> timer control
+	when(io.begin) {
+		timer := timer - 1.U
+	}
+	.otherwise {
+		timer := io.a + io.k + io.b - 1.U
+	}
+	// >>>> reset control
+	TheStorage.io.reset := true.B
+	when(timer === 0.U) {
+		TheStorage.io.reset := true.B
+		io.finish = true.B
+	}
+	when(timer =/= 0.U) {
+		TheStorage.io.reset := false.B
+		io.finish = false.B
+	}
 }
 
 /* Temp Record to insert input */
@@ -68,20 +87,29 @@ class Record(x: Int) extends Module {
 	})
 	// Initialize
 	val buffers =  Reg(init = Vec(Seq.fill( x )( 0.U(8.W) )))
-	// Get input
+	// Controlling
+	// >>>> when io.get is enable
 	when( io.get ) {
 		for (i <- x-1 to 1 by -1) {
     			buffers(i) := buffers(i - 1)
   		}
   		buffers(0) := io.fromController
+		io.toElement := 0.U
   		
 	}
-	// Give input
-	when( io.begin ) {
-		for (i <- x-1 to 1 by -1) {
-    			buffers(i) := buffers(i - 1)
+	// >>>> when io.get is unable and io.begin is enable
+	.elsewhen( io.begin ) {
+			for (i <- x-1 to 1 by -1) {
+    				buffers(i) := buffers(i - 1)
+  			}
+			io.toElement := buffers(x-1)
   		}
-		io.toElement := buffers(x-1)
+	}
+	// >>>> when not get, not begin
+	.otherwise {
+		for (i <- 0 until x) {
+    			buffers(i) := buffers(i)
+  		}
 	}
 }
 
@@ -111,16 +139,25 @@ class Element extends Module {
 /* Result storage */
 class Storage(m: Int, n: Int) extends Module {
 	val io = IO(new Bundle {
-		// x storages
+		val reset = Input(Bool())
 		val fromElements = Input(Vec( m * n, UInt(8.W) ))
-		val finish = Input(Bool()) // if job is ended, send result
 		val toController = Output(UInt(( 32 * m * n ).W))
 	})
 	// accumulator
-	val accumulator = Reg(init = Vec(Seq.fill( m * n )( 0.U(32.W) )))
+	val accumulator = RegInit(Vec(Seq.fill( m * n )( 0.U(32.W) )))
+	val total = UInt(( 32 * m * n ).W)
 
 	// match element and storage
 	for(i <- 0 until (m * n)) {
 		accumulator(i) := accumulator(i) + io.fromElements(i)
 	}
+	when(io.reset) {
+		for(i <- 0 until (m * n)) {
+			accumulator(i) := 0.U
+		}
+	}
+	// Concat
+	//for(i <- 0 until m * n) {
+	//	total := Cat(accumulator(i), accumulator(i+1))
+	//}
 }
