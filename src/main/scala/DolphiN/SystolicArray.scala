@@ -13,7 +13,7 @@ class RecordController(m: Int, n: Int) extends Module {
 		val finish = Output(Bool())
 	})
 	// Register Setting ===================================================
-	val timer = Reginit(0.U(16.W))
+	val timer = Reginit(2.U(16.W))
 	// Modules =========================================================
 	// >>>> Queue setting
 	val Mrecords =
@@ -74,6 +74,7 @@ class RecordController(m: Int, n: Int) extends Module {
 	when(timer === 0.U) {
 		TheStorage.io.reset := true.B
 		io.finish = true.B
+		timer := 2.U
 	}
 	when(timer =/= 0.U) {
 		TheStorage.io.reset := false.B
