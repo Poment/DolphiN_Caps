@@ -1,8 +1,8 @@
 customX rd, rs1, rs2, 0x01
-- Report Specification
+- Report
 rs1:
 rs2:
-rd: M/N(M, N: 8-bit each)
+rd: 0x00(free), 0x01(reserved) or 0x02(in use by 'Start')/M/N(M, N: 8-bit each)
 (1 clk op)
 
 customX rd, rs1, rs2, 0x02
@@ -12,7 +12,7 @@ rs2: (Mutex Address)
 rd: 0x00(success) or 0x01(failed)
 (1 clk op / mutex has to be acquired in advance)
 (reset all resources and make a reservation)
-(if mutex address == 0, full stall during 'Start' operation)
+(if mutex address == 0, full stall during 'Start')
 (if already reserved, return 0x01)
 (if not reserved, all instructions except 'Report' or 'Release' will be ignored)
 
@@ -33,6 +33,7 @@ rs1: Bias Vector Address
 rs2:
 rd:
 (1 clk op)
+(Bias is expected as A*B matrix)
 
 customX rd, rs1, rs2, 0x10
 - Start
