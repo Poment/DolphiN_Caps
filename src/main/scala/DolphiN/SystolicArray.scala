@@ -55,7 +55,7 @@ class RecordController(s: Int) extends Module {
 		timer := timer - 1.U
 		Mrecords(counter).begin := true.B
 		Nrecords(counter).begin := true.B
-		counter := counter + 1.U
+		counter := ((counter + 1.U) % s.U)
 	}
 	// io.begin : false
 	.otherwise {
