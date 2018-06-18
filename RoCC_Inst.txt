@@ -2,7 +2,7 @@ customX rd, rs1, rs2, 0x01
 - Report
 rs1:
 rs2:
-rd: 0x00(free), 0x01(reserved) or 0x02(in use by 'Start')/M/N(M, N: 8-bit each)
+rd: 0x00(free), 0x01(reserved) or 0x02(in use by 'Start')(2-bit)/M(M: 8-bit)
 (1 clk op)
 
 customX rd, rs1, rs2, 0x02
