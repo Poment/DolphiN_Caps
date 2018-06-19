@@ -1,23 +1,23 @@
-customX rd, rs1, rs2, 0x01
-- Report
+customX rd, rs1, rs2, 0
+- dnXrep(Report)
 rs1:
 rs2:
-rd: 0x00(free), 0x01(reserved) or 0x02(in use by 'Start')(2-bit)/M(M: 8-bit)
+rd: 0(free), 1(reserved) or 2(in use by 'Start')(2-bit)/M(M: 8-bit)
 (1 clk op)
 
-customX rd, rs1, rs2, 0x02
-- Reserve
+customX rd, rs1, rs2, 1
+- dnXres(Reserve)
 rs1: Output Address
 rs2: (Mutex Address)
-rd: 0x00(success) or 0x01(failed)
+rd: 0(success) or 1(failed)
 (1 clk op / mutex has to be acquired in advance)
 (reset all resources and make a reservation)
 (if mutex address == 0, full stall during 'Start')
-(if already reserved, return 0x01)
+(if already reserved or in use by 'Start', return 1)
 (if not reserved, all instructions except 'Report' or 'Release' will be ignored)
 
-customX rd, rs1, rs2, 0x04
-- Set Parameters
+customX rd, rs1, rs2, 2
+- dnXsp(Set Parameters)
 rs1: A/B/K(8-bit each)
 rs2: XO0/YO0/XO1/YO1(8-bit each)
 rd:
@@ -27,26 +27,19 @@ rd:
 (X0#: row offset number of partial matrix(input matrix #))
 (Y0#: column offset number of partial matrix(input matrix #))
 
-customX rd, rs1, rs2, 0x08
-- Set Special Parameters
-rs1: Bias Vector Address
-rs2:
-rd:
-(1 clk op)
-(Bias is expected as A*B matrix)
-
-customX rd, rs1, rs2, 0x10
-- Start
+customX rd, rs1, rs2, 3
+- dnXstrt(Start)
 rs1: Input Address 1
 rs2: Input Address 2
 rd:
 (? clk op(release CPU immediately))
 (if finished, interrupt to release mutex and the reservation)
 
-customX rd, rs1, rs2, 0x20
-- Release
+customX rd, rs1, rs2, 0x10
+- dnXrel(Release)
 rs1:
 rs2:
 rd:
 (1 clk op)
+(reset all internal flags of 'reserve' and 'start')
 (this should not be used in most of common situation)
