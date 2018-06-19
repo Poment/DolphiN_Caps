@@ -10,6 +10,7 @@ class RecordController(s: Int) extends Module {
 		val a = Input(UInt(8.W))
 		val b = Input(UInt(8.W))
 		val k = Input(UInt(8.W))
+		val finish = Output(Bool())
 		val result = Output(SInt((32*s*s).W))
 	})
 	// Register Setting ================================================
@@ -70,10 +71,12 @@ class RecordController(s: Int) extends Module {
 	when(timer === 0.U) {
 		TheStorage.io.reset := true.B
 		timer := 255.U
+		io.finish := true.B
 	}
 	// timer != 0
 	.elsewhen(timer =/= 0.U) {
 		TheStorage.io.reset := false.B
+		io.finish := false.B
 	}
 	// result
 	io.result := TheStorage.io.toController
